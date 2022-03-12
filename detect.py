@@ -41,7 +41,7 @@ def detect_faces(path):
     """Detects faces in an image."""
     from google.cloud import vision
     import io
-    client = vision.ImageAnnotatorClient().from_service_account_json('C:\\Users\\Leon\\Downloads\\client-server.json')
+    # client = vision.ImageAnnotatorClient().from_service_account_json('C:\\Users\\Leon\\Downloads\\client-server.json')
 
     # [START vision_python_migration_face_detection]
     # [START vision_python_migration_image_file]
