@@ -13,7 +13,7 @@ class TestTextDetector():
 
     def test_detect_text(self):
         import io
-        path = "..\\resources\\img.png"
+        path = "..\\resources\\edeka.jpg"
         # [START vision_python_migration_text_detection]
         with io.open(path, 'rb') as image_file:
             content = image_file.read()
