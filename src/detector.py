@@ -3,7 +3,7 @@ import flask
 from flask import request, jsonify
 from google.cloud import vision
 
-SKIPWORDS = ['eur', 'stk', 'straße', 'tel', 'posten', 'www']
+SKIPWORDS = ['eur', 'stk', 'straße', 'str.', 'tel', 'posten', 'www', 'geschlossen','*','datum','terminalnummer','+ ','transaktions']
 STOPWORDS = [
     'summe',
     'visa',
@@ -15,7 +15,7 @@ STOPWORDS = [
     'kreditkarte',
     'ust-id-nr',
     'rück geld']
-MARKETS = ['drogerie', 'lidl', 'rewe', 'real', 'allguth', 'dm', 'edeka']
+MARKETS = ['drogerie', 'lidl', 'rewe', 'real', 'allguth', 'dm', 'edeka','ldl','aldi']
 BLACKLIST_WORDS = ['steuer-nr', 'eur*', 'pfand']
 
 
@@ -28,7 +28,7 @@ def check_number(text):
         return False
 
 
-def check_price(text):
+def check_price_and_place(text):
     if ' ' in text:
         price = text.split(' ')[0]
     else:
@@ -55,14 +55,13 @@ def parse_texts(texts):
     number = 1
 
     for text in texts:
+        if contain_substring(STOPWORDS,text.lower()):
+            break
         if contain_substring(
                 SKIPWORDS +
-                STOPWORDS +
                 MARKETS +
                 BLACKLIST_WORDS,
                 text.lower()):
-            continue
-        if check_price(text):
             continue
         if number == 1:
             number = check_number(text)
@@ -70,6 +69,8 @@ def parse_texts(texts):
                 continue
             else:
                 number = 1
+        if check_price_and_place(text):
+            continue
         if text != '':
             if articles.get(text) is not None:
                 articles[text] += number
@@ -93,22 +94,8 @@ def detect_text():
     image = vision.Image(content=byte_content)
     response = client.document_text_detection(image=image)
     texts = response.full_text_annotation.text
-    # texts = response.text_annotations[1:]
     articles = parse_texts(texts)
-    print("articles:", articles)
-    # for i,text in enumerate(texts):
-    #     description = text.description
-    #     print("line "+str(i)+': ',description)
-    # print(texts)
-    # print('Texts:')
-    #
-    # for text in texts:
-    #     print('\n"{}"'.format(text.description))
-    #
-    #     vertices = (['({},{})'.format(vertex.x, vertex.y)
-    #                  for vertex in text.bounding_poly.vertices])
-    #
-    #     print('bounds: {}'.format(','.join(vertices)))
+    # print("articles:", articles)
 
     if response.error.message:
         return '{}\nFor more info on error messages, check:https://cloud.google.com/apis/design/errors'.format(
@@ -127,13 +114,15 @@ def read_image(path):
 
 
 if __name__ == '__main__':
-    path = "resources\\edeka.jpg"
+    # path = "resources\\edeka.jpg"
+    path = "resources\\lidl.jpg"
     byte_content = read_image(path)
     # https://stackoverflow.com/questions/37225035/serialize-in-json-a-base64-encoded-data
     # bytes
     # base64_bytes = b64encode(byte_content)
     # string
     # base64_string = base64_bytes.decode(ENCODING)
+
     '''
     test
     https://betterprogramming.pub/google-vision-and-google-sheets-api-line-by-line-receipt-parsing-2e2661261cda
@@ -142,4 +131,4 @@ if __name__ == '__main__':
     # response=app.test_client().post('/', data=byte_content)
     # print(response.json)
 
-    app.run(host='localhost')
+    app.run(debug= True,host='0.0.0.0')
