@@ -9,6 +9,7 @@ It listens http requests with the byte array of a receipt image in their body on
 ### Download the Project
 <code>
 git clone https://github.com/Rylie-W/falco-server.git
+
 cd falco-server
 </code>
 
@@ -19,7 +20,9 @@ Paste your JSON file into the directory <code>falco-server/src/resources</code> 
 <code>pip install -r requirements.txt</code>
 
 ### Run the Server
+
 <code>
 cd src
+
 python detector.py
 </code>
