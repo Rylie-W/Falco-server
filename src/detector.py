@@ -1,4 +1,4 @@
-from base64 import b64encode
+from base64 import b64decode
 import flask
 from flask import request, jsonify
 from google.cloud import vision
@@ -87,22 +87,32 @@ app = flask.Flask(__name__)
 
 @app.route('/', methods=['POST'])
 def detect_text():
-    client = vision.ImageAnnotatorClient.from_service_account_json(
-        'resources\\ocr.json')
-    byte_content = request.data
+    print("You have connected with the server!")
+    try:
+        client = vision.ImageAnnotatorClient.from_service_account_json(
+            'resources//ocr.json')
+        content = request.get_json(force=True)
+        # print(content)
+        byte_content = b64decode(content['image'])
+        # print(byte_content)
 
-    image = vision.Image(content=byte_content)
-    response = client.document_text_detection(image=image)
-    texts = response.full_text_annotation.text
-    articles = parse_texts(texts)
-    # print("articles:", articles)
+        image = vision.Image(content=byte_content)
+        response = client.document_text_detection(image=image)
+        texts = response.full_text_annotation.text
+        articles = parse_texts(texts)
+        # print("articles:", articles)
 
-    if response.error.message:
-        return '{}\nFor more info on error messages, check:https://cloud.google.com/apis/design/errors'.format(
-            response.error.message), 400
+        if response.error.message:
+            print('{}\nFor more info on error messages, check:https://cloud.google.com/apis/design/errors'.format(
+                response.error.message))
+            return '{}\nFor more info on error messages, check:https://cloud.google.com/apis/design/errors'.format(
+                response.error.message), 400
 
-    else:
-        return jsonify(articles), 200
+        else:
+            return jsonify(articles), 200
+    except Exception as e:
+        print(e)
+        return "Request must specify image and features.",500
 
 
 def read_image(path):
@@ -115,8 +125,8 @@ def read_image(path):
 
 if __name__ == '__main__':
     # path = "resources\\edeka.jpg"
-    path = "resources\\lidl.jpg"
-    byte_content = read_image(path)
+    # path = "resources\\lidl.jpg"
+    # byte_content = read_image(path)
     # https://stackoverflow.com/questions/37225035/serialize-in-json-a-base64-encoded-data
     # bytes
     # base64_bytes = b64encode(byte_content)
@@ -128,7 +138,7 @@ if __name__ == '__main__':
     https://betterprogramming.pub/google-vision-and-google-sheets-api-line-by-line-receipt-parsing-2e2661261cda
     https://stackoverflow.com/questions/64649598/how-to-send-an-image-via-post-request-in-flask
     '''
-    # response=app.test_client().post('/', data=byte_content)
+    # response=app.test_client().post('/', data=None)
     # print(response.json)
 
     app.run(debug= True,host='0.0.0.0')
